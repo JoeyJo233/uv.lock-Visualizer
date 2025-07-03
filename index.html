@@ -379,7 +379,7 @@
                             <input type="checkbox" id="clickActionToggle">
                             <span class="slider"></span>
                         </label>
-                        <span id="clickActionLabel">Expand Neighbors</span>
+                        <span id="clickActionLabel">Click to expand neighbors</span>
                     </div>
                 </div>
             </div>
@@ -555,7 +555,7 @@
         // Initialize visualization immediately
         document.addEventListener('DOMContentLoaded', function() {
             initializeVisualization();
-            setupClickActionToggle(); // Add this line to initialize the toggle
+            setupClickActionToggle();
         });
 
         /**
@@ -675,7 +675,7 @@
                     document.getElementById('placeholder-message').style.display = 'none';
                     resetFilter();
                     setupAutocomplete();
-                    // setupClickActionToggle(); // Remove this line since we're calling it at initialization
+                    setupClickActionToggle();
 
                 } catch (error) {
                     console.error("Error processing file:", error);
@@ -963,5 +963,5 @@
             }
         });
     </script>
-</html>
+</body>
 </html>
