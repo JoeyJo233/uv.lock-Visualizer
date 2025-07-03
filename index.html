@@ -45,22 +45,48 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
         
+        .drop-zone {
+            margin-top: 10px;
+            padding: 15px;
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            text-align: center;
+            transition: all 0.2s ease;
+            background-color: #f8f9fa;
+            cursor: pointer;
+        }
+        
+        .drop-zone.drag-over {
+            border-color: #007bff;
+            background-color: rgba(0, 123, 255, 0.05);
+        }
+        
+        .drop-zone-prompt {
+            margin: 10px 0;
+        }
+        
+        .drop-zone-prompt p {
+            margin: 5px 0;
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .drop-zone-hint {
+            font-size: 12px !important;
+            color: #999 !important;
+        }
+        
         #file-input { 
-            margin-bottom: 15px;
+            margin: 10px auto;
             padding: 6px;
             border: 1px dashed #ccc;
             border-radius: 6px;
-            width: 90%; /* Reduced from 100% to fit better */
-            max-width: 250px; /* Add a max-width to prevent it from being too wide */
+            width: 80%; /* Reduced width */
+            max-width: 220px;
             text-align: center;
-            font-size: 13px; /* Smaller font size */
-            margin-left: auto;
-            margin-right: auto;
-            display: block; /* Center the input */
-        }
-        
-        #upload-results { 
-            margin-bottom: 20px;
+            font-size: 13px;
+            display: block;
+            cursor: pointer;
         }
         
         .stats { 
@@ -349,6 +375,29 @@
             margin-right: 8px;
             border: 1px solid #333;
         }
+        
+        .file-info {
+            display: none; /* Hidden by default */
+            margin-top: 10px;
+            background-color: rgba(0, 123, 255, 0.1);
+            padding: 8px;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+        
+        .file-info.active {
+            display: block;
+        }
+        
+        .file-name {
+            font-weight: bold;
+            word-break: break-all;
+        }
+        
+        .file-info .success-icon {
+            color: #28a745;
+            margin-right: 5px;
+        }
     </style>
 </head>
 <body>
@@ -356,7 +405,18 @@
         <div class="left-column">
             <div class="upload-section">
                 <h1>uv.lock Visualizer</h1>
-                <input type="file" id="file-input" accept=".lock">
+                <div class="drop-zone" id="drop-zone">
+                    <div class="drop-zone-prompt">
+                        <p>Drag & drop a uv.lock file here<br>or</p>
+                        <input type="file" id="file-input" accept=".lock">
+                        <p class="drop-zone-hint">Only .lock files are accepted</p>
+                    </div>
+                    <div class="file-info" id="file-info">
+                        <span class="success-icon">✓</span>
+                        <span>File loaded: </span>
+                        <span class="file-name" id="file-name"></span>
+                    </div>
+                </div>
                 
                 <div id="upload-results">
                     <div id="stats" class="stats"></div>
@@ -556,6 +616,127 @@
         document.addEventListener('DOMContentLoaded', function() {
             initializeVisualization();
             setupClickActionToggle();
+            setupDragAndDrop();
+        });
+
+        /**
+         * Sets up drag and drop functionality for file uploads
+         */
+        function setupDragAndDrop() {
+            const dropZone = document.getElementById('drop-zone');
+            const fileInput = document.getElementById('file-input');
+            const fileInfo = document.getElementById('file-info');
+            const fileNameText = document.getElementById('file-name');
+            
+            // Open file dialog when clicking on the drop zone
+            dropZone.addEventListener('click', function(e) {
+                // Prevent clicking on the input itself from triggering this again
+                if (e.target !== fileInput) {
+                    fileInput.click();
+                }
+            });
+            
+            // Prevent defaults for all drag events to enable drop
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                dropZone.addEventListener(eventName, preventDefaults, false);
+            });
+            
+            // Visual feedback when dragging over the zone
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropZone.addEventListener(eventName, highlight, false);
+            });
+            
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropZone.addEventListener(eventName, unhighlight, false);
+            });
+            
+            // Handle the dropped file
+            dropZone.addEventListener('drop', handleDrop, false);
+            
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+            
+            function highlight() {
+                dropZone.classList.add('drag-over');
+            }
+            
+            function unhighlight() {
+                dropZone.classList.remove('drag-over');
+            }
+            
+            function handleDrop(e) {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+                
+                if (files.length > 0) {
+                    // Process only the first file if multiple are dropped
+                    const file = files[0];
+                    
+                    // Check if it's a .lock file
+                    if (file.name.endsWith('.lock')) {
+                        // Update the file input value for consistency
+                        // Note: This is limited by security, but we process the dropped file directly
+                        processFile(file);
+                    } else {
+                        alert('Please upload a .lock file.');
+                    }
+                }
+            }
+        }
+        
+        /**
+         * Processes the uploaded file - works for both regular upload and drag & drop
+         */
+        function processFile(file) {
+            if (!file) {
+                resetVisualization();
+                return;
+            }
+
+            // Display the filename in the UI
+            const fileInfo = document.getElementById('file-info');
+            const fileName = document.getElementById('file-name');
+            fileName.textContent = file.name;
+            fileInfo.classList.add('active');
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const content = e.target.result;
+                    const result = parseUvLock(content);
+
+                    // Prepare data for visualization
+                    allData = result;
+                    const nodeById = new Map(allData.nodes.map(n => [n.id, n]));
+                    allData.edges.forEach(edge => {
+                        edge.source = nodeById.get(edge.source);
+                        edge.target = nodeById.get(edge.target);
+                    });
+
+                    // Hide placeholder and show visualization
+                    document.getElementById('placeholder-message').style.display = 'none';
+                    resetFilter();
+                    setupAutocomplete();
+
+                } catch (error) {
+                    console.error("Error processing file:", error);
+                    document.getElementById('stats').innerHTML = `<p>❌ Error processing file: ${error.message}</p>`;
+                    resetVisualization();
+                }
+            };
+            reader.onerror = () => {
+                document.getElementById('stats').innerHTML = `<p>❌ Error reading file.</p>`;
+                resetVisualization();
+            };
+            reader.readAsText(file);
+        }
+
+        // Update the file input handler to use the common processing function
+        document.getElementById('file-input').addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            processFile(file);
         });
 
         /**
@@ -643,55 +824,13 @@
             };
         }
 
-        // File input handler
-        document.getElementById('file-input').addEventListener('change', (event) => {
-            const file = event.target.files[0];
-            if (!file) {
-                resetVisualization();
-                return;
-            }
-
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                try {
-                    const content = e.target.result;
-                    const result = parseUvLock(content);
-
-                    // Display processing results
-                    // document.getElementById('stats').innerHTML = `
-                    //     <p>✅ Processed ${result.metadata.total_packages} packages </p>
-                    //     <p>   found ${result.metadata.total_dependencies} dependencies</p>
-                    // `;
-
-                    // Prepare data for visualization
-                    allData = result;
-                    const nodeById = new Map(allData.nodes.map(n => [n.id, n]));
-                    allData.edges.forEach(edge => {
-                        edge.source = nodeById.get(edge.source);
-                        edge.target = nodeById.get(edge.target);
-                    });
-
-                    // Hide placeholder and show visualization
-                    document.getElementById('placeholder-message').style.display = 'none';
-                    resetFilter();
-                    setupAutocomplete();
-                    setupClickActionToggle();
-
-                } catch (error) {
-                    console.error("Error processing file:", error);
-                    document.getElementById('stats').innerHTML = `<p>❌ Error processing file: ${error.message}</p>`;
-                    resetVisualization();
-                }
-            };
-            reader.onerror = () => {
-                document.getElementById('stats').innerHTML = `<p>❌ Error reading file.</p>`;
-                resetVisualization();
-            };
-            reader.readAsText(file);
-        });
-
         function resetVisualization() {
             document.getElementById('placeholder-message').style.display = 'block';
+            
+            // Hide the file info
+            const fileInfo = document.getElementById('file-info');
+            fileInfo.classList.remove('active');
+            
             if (simulation) {
                 simulation.stop();
                 updateVisualization({ nodes: [], edges: [] });
@@ -963,5 +1102,4 @@
             }
         });
     </script>
-</body>
-</html>
+</body></html>
