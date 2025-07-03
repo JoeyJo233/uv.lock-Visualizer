@@ -485,10 +485,10 @@
             toggle.addEventListener('change', function() {
                 if (this.checked) {
                     clickAction = 'hide';
-                    label.textContent = 'Hide Node';
+                    label.textContent = 'Click to hide node';
                 } else {
                     clickAction = 'expand';
-                    label.textContent = 'Expand Neighbors';
+                    label.textContent = 'Click to expand neighbors';
                 }
             });
         }
@@ -555,6 +555,7 @@
         // Initialize visualization immediately
         document.addEventListener('DOMContentLoaded', function() {
             initializeVisualization();
+            setupClickActionToggle(); // Add this line to initialize the toggle
         });
 
         /**
@@ -674,7 +675,7 @@
                     document.getElementById('placeholder-message').style.display = 'none';
                     resetFilter();
                     setupAutocomplete();
-                    setupClickActionToggle();
+                    // setupClickActionToggle(); // Remove this line since we're calling it at initialization
 
                 } catch (error) {
                     console.error("Error processing file:", error);
@@ -962,5 +963,5 @@
             }
         });
     </script>
-</body>
+</html>
 </html>
