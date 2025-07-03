@@ -190,6 +190,22 @@
             background: #545b62;
         }
         
+        .btn-download {
+            background: #28a745;
+            margin-left: 0;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .btn-download:hover {
+            background: #218838;
+        }
+        
+        .download-icon {
+            font-weight: bold;
+        }
+        
         .switch-container {
             display: inline-flex;
             align-items: center;
@@ -441,6 +457,11 @@
                         </label>
                         <span id="clickActionLabel">Click to expand neighbors</span>
                     </div>
+                    <div style="margin-top: 15px;">
+                        <button class="btn btn-download" id="downloadPngBtn">
+                            <span class="download-icon">⬇</span> Save as PNG
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -617,8 +638,87 @@
             initializeVisualization();
             setupClickActionToggle();
             setupDragAndDrop();
+            setupDownloadButton();
         });
 
+        /**
+         * Sets up the download button to export visualization as PNG
+         */
+        function setupDownloadButton() {
+            const downloadBtn = document.getElementById('downloadPngBtn');
+            
+            downloadBtn.addEventListener('click', function() {
+                // Check if we have a visualization to download
+                if (!allData || displayedData.nodes.length === 0) {
+                    alert('No visualization to download. Please load a file first.');
+                    return;
+                }
+                
+                downloadVisualizationAsPng();
+            });
+        }
+        
+        /**
+         * Converts the SVG visualization to PNG and triggers download
+         */
+        function downloadVisualizationAsPng() {
+            const svgElement = document.getElementById('dependency-graph');
+            const containerElement = document.getElementById('visualization-container');
+            
+            // Get dimensions
+            const width = containerElement.clientWidth;
+            const height = containerElement.clientHeight;
+            
+            // Create a clone of the SVG to avoid modifying the original
+            const svgClone = svgElement.cloneNode(true);
+            
+            // Set proper dimensions and style
+            svgClone.setAttribute('width', width);
+            svgClone.setAttribute('height', height);
+            
+            // Prepare to create canvas with proper scaling
+            const scale = 2; // Higher resolution for better quality
+            const canvas = document.createElement('canvas');
+            canvas.width = width * scale;
+            canvas.height = height * scale;
+            
+            // Get canvas context and set white background
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.scale(scale, scale);
+            
+            // Create an image from the SVG
+            const svgData = new XMLSerializer().serializeToString(svgElement);
+            const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+            const url = URL.createObjectURL(svgBlob);
+            
+            const img = new Image();
+            img.onload = function() {
+                // Draw the image onto the canvas
+                ctx.drawImage(img, 0, 0);
+                URL.revokeObjectURL(url);
+                
+                // Convert canvas to data URL and trigger download
+                try {
+                    const pngData = canvas.toDataURL('image/png');
+                    const downloadLink = document.createElement('a');
+                    const filename = 'uv-lock-visualization-' + new Date().toISOString().slice(0, 10) + '.png';
+                    
+                    downloadLink.href = pngData;
+                    downloadLink.download = filename;
+                    document.body.appendChild(downloadLink);
+                    downloadLink.click();
+                    document.body.removeChild(downloadLink);
+                } catch (error) {
+                    console.error('Error creating PNG:', error);
+                    alert('Error creating PNG image. This might be due to security restrictions with local files.');
+                }
+            };
+            
+            img.src = url;
+        }
+        
         /**
          * Sets up drag and drop functionality for file uploads
          */
@@ -1101,5 +1201,37 @@
                 filterDependencies();
             }
         });
+
+        /**
+         * Downloads the current visualization as a PNG file.
+         */
+        function downloadVisualization() {
+            const svgElement = document.getElementById('dependency-graph');
+            const serializer = new XMLSerializer();
+            const svgString = serializer.serializeToString(svgElement);
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            const img = new Image();
+            
+            // Set canvas dimensions
+            const width = svgElement.clientWidth;
+            const height = svgElement.clientHeight;
+            canvas.width = width;
+            canvas.height = height;
+
+            img.onload = function() {
+                ctx.drawImage(img, 0, 0);
+                
+                // Now the SVG is rendered on the canvas, we can download it as an image
+                const link = document.createElement('a');
+                link.download = 'visualization.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            };
+            
+            // Convert SVG string to data URL
+            const svgData = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgString);
+            img.src = svgData;
+        }
     </script>
 </body></html>
