@@ -438,7 +438,7 @@
     <div class="container">
         <div class="left-column">
             <div class="upload-section">
-                <h1>uv.lock Visualizer</h1>
+                <h2>uv.lock Visualizer</h2>
                 <div class="drop-zone" id="drop-zone">
                     <div class="drop-zone-prompt">
                         <p>Drag & drop a uv.lock file here<br>or</p>
@@ -487,9 +487,22 @@
         <div class="right-column">
             <div class="visualization-container" id="visualization-container">
                 <svg id="dependency-graph"></svg>
-                <div class="placeholder-message" id="placeholder-message">
-                    Upload a uv.lock file to visualize dependencies
-                </div>
+                    <div class="placeholder-message" id="placeholder-message">
+                        Upload a uv.lock file to visualize dependencies.<br>
+                        <br>
+                        <strong>How to Interact with the Graph:</strong><br>
+                        - <strong>Zoom</strong>: Use the mouse wheel(or 2 fingers slide with touchpad) to zoom in and out of the graph.<br>
+                        - <strong>Pan</strong>: Click and drag anywhere on the graph to move the view.<br>
+                        - <strong>Node Click Behavior</strong>: Use the toggle switch to change the click behavior:<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;- <strong>Expand Neighbors</strong>: Clicking a node will reveal its connected nodes.<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;- <strong>Hide Node</strong>: Clicking a node will remove it from the graph.<br>
+                        <br>
+                        <strong>Additional Features:</strong><br>
+                        - <strong>Filter Dependencies</strong>: Enter a package name in the filter box to highlight related nodes. Use the "Reset" button to clear the filter.<br>
+                        - <strong>Download Graph</strong>: Click the "Save as PNG" button to export the current graph visualization as a PNG image.<br>
+                        <br>
+                        Start by uploading a uv.lock file to explore your dependency graph!
+                    </div>
                 
                 <div class="legend" id="legend">
                     <h4>Legend</h4>
