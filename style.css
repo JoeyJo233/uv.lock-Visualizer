@@ -34,6 +34,37 @@ body {
 
 h1, h2 { color: #343a40; }
 
+.author-info {
+    margin: 8px 0 15px 0;
+    padding: 8px 12px;
+    background: #f8f9fa;
+    border-radius: 6px;
+    border-left: 3px solid #007bff;
+}
+
+.author-info p {
+    margin: 0;
+    font-size: 14px;
+    color: #6c757d;
+}
+
+.author-info a {
+    color: #007bff;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s ease;
+}
+
+.author-info a:hover {
+    color: #0056b3;
+    text-decoration: underline;
+}
+
+.github-icon {
+    margin-right: 4px;
+    font-size: 12px;
+}
+
 .upload-section {
     background: white;
     padding: 15px; /* Reduced from 20px to 15px */
